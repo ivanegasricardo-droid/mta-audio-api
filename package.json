@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "@distube/ytdl-core": "latest"
+    "@distube/ytdl-core": "latest",
+    "fluent-ffmpeg": "^2.1.3",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0"
   }
 }
