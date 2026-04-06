@@ -3,37 +3,35 @@ const ytdl = require('@distube/ytdl-core');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
 
-// Le decimos al servidor dónde está el conversor MP3
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get('/musica', (req, res) => {
-    const videoURL = req.query.url;
-    if (!videoURL) return res.status(400).send("Falta la URL");
+// CREAMOS UNA RUTA LIMPIA QUE TERMINE EN .MP3 PARA ENGAÑAR A MTA
+app.get('/musica/:id.mp3', (req, res) => {
+    const videoId = req.params.id;
+    const videoURL = `https://www.youtube.com/watch?v=${videoId}`;
 
-    console.log(`Convirtiendo a MP3 y transmitiendo: ${videoURL}`);
+    console.log(`🎵 MTA BASS Conectando a: ${videoURL}`);
     
-    // Le aseguramos a MTA que está recibiendo un MP3 real
+    // Forzamos las cabeceras para que BASS crea que es un archivo normal
     res.header('Content-Type', 'audio/mpeg');
 
     try {
-        // Descargamos el audio de YouTube
         const stream = ytdl(videoURL, { quality: 'highestaudio' });
         
-        // Lo convertimos a MP3 al instante y lo enviamos a MTA
         ffmpeg(stream)
             .audioBitrate(128)
             .format('mp3')
             .on('error', (err) => {
-                console.error('Error en la conversión:', err.message);
+                console.error('Error FFmpeg:', err.message);
             })
             .pipe(res);
 
     } catch (err) {
-        if (!res.headersSent) res.status(500).send("Error de servidor");
+        console.error(err);
+        if (!res.headersSent) res.status(500).send("Error");
     }
 });
 
-app.listen(PORT, () => console.log(`API con conversor MP3 encendida en puerto ${PORT}`));
+app.listen(PORT, () => console.log(`API modo Radio BASS lista en puerto ${PORT}`));
